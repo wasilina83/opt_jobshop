@@ -1,3 +1,5 @@
+import itertools
+
 def dev_options_form_parts(patrs_number):
     option = [1,0]
     option_list = []
@@ -15,6 +17,14 @@ def dev_options_form_parts(patrs_number):
 #diese verduppeln
 #jedes element aus [[0,1,0,0,i],[2i]] mit nx1 und 2nx0 erweitern
 
+def gen_all_possible_job_sequences(jobs_data):
+    jobs =[]
+    for operation, job_list in jobs_data.items():
+        for job in job_list:
+            jobs.append(job)
+
+    job_possibilities =itertools.permutations(jobs)
+    return
 
 
  
