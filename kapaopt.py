@@ -5,6 +5,8 @@ import itertools
 
 class Job :
     def __init__(self, operation, part, quantity, production_time, equip_time):
+        ''' ist eiene classe für die Jobs eigetlich un nötig aber ich wollte es lernen
+        '''
         self.operation = operation
         self.part = part
         self.quantity = quantity
@@ -19,6 +21,8 @@ class Job :
 
 
 class Maschine_Schedule :
+    ''' ist eiene classe für die Maschienen eigetlich un nötig aber ich wollte es lernen
+    '''
     def __init__(self, operation, schedule_list):
         self.operation = operation
         self.schedule_list = schedule_list
@@ -32,6 +36,12 @@ class Maschine_Schedule :
 
 
 def get_job_data_form_json(filename):
+    '''mit eine json datei und liest die date aus gibt ein dict zurück
+    defaultdict(<class 'list'>, {
+    'milling': [operation: milling, part: T4, quantity: 20, production_time: 8, equip_time: 12], 
+    'grinding': [operation: grinding, part: T4, quantity: 20, production_time: 16, equip_time: 24], 
+    'turning': [operation: turning, part: T6, quantity: 30, production_time: 5, equip_time: 12]})
+    '''
     with open(filename) as file:
         job_dict = defaultdict(list)
         data = js.load(file) 
@@ -41,25 +51,42 @@ def get_job_data_form_json(filename):
                 #machine_time = quantity * production_time * batch_size + equip_time
                 job = Job(operation, part, quantity, production_time, equip_time)
                 job_dict[job.operation].append(job)
+                if operation in job_dict:
+                    job_dict[operation] = [job]
+                else:
+                    job_dict[operation] = [job]
     return job_dict    
-        
+
 
 def get_batch_size():
     with open("data.json") as file:
+        '''es gibt zwei arten von losen 1 ganzes und halbes
+        '''
         data = js.load(file)
         batch_sizes = data["batch_sizes"]
         return batch_sizes
 
 
 def get_max_time():
+    '''es gibt eien maximale zeit die die maschnenzeit am Tag nicht überschtreiten darf 422.5 Stunden
+    '''
     with open("data.json") as file:
         data = js.load(file)
         max_time = data["workload_maximum"]
         return max_time
     
-    
                 
 def get_schedule_from_json(filename):
+    '''mit eine json datei und liest die date aus gibt ein dict zurück
+    defaultdict(<class 'list'>, {
+        'milling': [operation: milling, schedule_list: 
+        [{'number': 1, 'schedule': [350, 350, 320, 240, 200, 0, 0, 160, 80, 60]}, 
+        {'number': 2, 'schedule': [400, 350, 320, 340, 200, 0, 0, 190, 120, 100]}]], 
+        'grinding': [operation: grinding, schedule_list: 
+        [{'number': 1, 'schedule': [280, 320, 360, 240, 160, 0, 0, 100, 80, 110]}]], 
+        'turning': [operation: turning, schedule_list: 
+        [{'number': 1, 'schedule': [380, 320, 320, 240, 200, 0, 0, 170, 150, 120]}]]})
+    '''
     with open(filename) as file:
         data = js.load(file)
         schedule_dict = defaultdict(list)
@@ -70,34 +97,29 @@ def get_schedule_from_json(filename):
         
 
 
-def generate_maschine_plan(schedule_lists, job_list, max_time):
-    for number in schedule_lists:
-        for schedule_data in number.schedule_list:
-            for slot in schedule_data["schedule"]:
-                all_options = dev_options_form_parts(len(schedule_data["schedule"]))
-                print(len(schedule_data["schedule"]))
-                #print(all_options)
-                machine_time_list=[]
-                for job_data in job_list:
-                    for batch_size in get_batch_size():
-                        machine_time = job_data.quantity * job_data.production_time * batch_size + job_data.equip_time
-                        machine_time_list.append(machine_time)
+def generate_maschine_plan(filename):
+    max_time = get_max_time
+    job_list = get_job_data_form_json(filename)
+    schedule_lists = get_schedule_from_json(filename)
+    '''not done'''
+    # for operation, schedule_data in schedule_lists:
+    #     print(operation, schedule_data)
+         # for slot in schedule_data.schedule_list[0]["schedule"]:
+        #     for slot in schedule_data["schedule"]:
+        #         all_options = dev_options_form_parts(len(schedule_data.schedule_list[0]["schedule"]))
+        #         #print(all_options)
+        #         machine_time_list=[]
+        #         for job_data in job_list[operation]:
+        #             for batch_size in get_batch_size():
+        #                 machine_time = job_data.quantity * job_data.production_time * batch_size + job_data.equip_time
+        #                 machine_time_list.append(machine_time)
+             
 
-                
-
-         
-
-
-jobs_data = get_job_data_form_json("data.json")
-
-
-for operation, schedule_list in get_schedule_from_json("data.json").items() :
-     job_list = jobs_data[operation]
-     maschine_plan = generate_maschine_plan(schedule_list, job_list, get_max_time())
 
 
 # Die Funktion dev_options_form_parts kann zur Erzeugung aller möglichen Job-Reihenfolgen verwendet werden.
-def generate_job_permutations(jobs_data):
+def generate_job_permutations(filename):
+    jobs_data = get_job_data_form_json(filename)
     jobs = []
     for operation, job_list in jobs_data.items():
         for job in job_list:
@@ -107,6 +129,11 @@ def generate_job_permutations(jobs_data):
     job_permutations = itertools.permutations(jobs)
 
     return job_permutations
+
+permutations = generate_job_permutations("data.json")
+
+for idx, permutation in enumerate(permutations, start=1):
+    print(f"Permutation {idx}: {permutation}")
 
 # Diese Funktion berechnet die Gesamtkosten für einen gegebenen Zeitplan.
 def calculate_total_cost(schedule, max_time):
@@ -133,12 +160,3 @@ def brute_force_job_shop_scheduling(jobs_data, schedule_lists, max_time):
             best_schedule = current_schedule
 
     return best_schedule, best_cost
-
-# Beispielaufruf:
-jobs_data = get_job_data_form_json("data.json")
-schedule_lists = get_schedule_from_json("data.json")
-max_time = get_max_time()
-
-best_schedule, best_cost = brute_force_job_shop_scheduling(jobs_data, schedule_lists, max_time)
-print("Best Schedule:", best_schedule)
-print("Best Cost:", best_cost)

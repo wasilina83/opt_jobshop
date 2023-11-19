@@ -25,8 +25,3 @@ def gen_all_possible_job_sequences(jobs_data):
 
     job_possibilities =itertools.permutations(jobs)
     return
-
-
- 
-
-print(dev_options_form_parts(1))
