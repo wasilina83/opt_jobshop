@@ -95,6 +95,17 @@ def get_schedule_from_json(filename):
             schedule_dict[maschine_schedule.operation].append(maschine_schedule)
     return schedule_dict
         
+def sort_jobs_for_mashine(filename):
+    '''sortiert die Teile nach operation'''
+    job_list = get_job_data_form_json(filename)
+    milling_jobs = []
+    grinding_jobs = []
+    turning_jobs = []
+    
+    print(job_list)
+
+
+sort_jobs_for_mashine("data.json")
 
 
 def generate_maschine_plan(filename):
@@ -120,20 +131,17 @@ def generate_maschine_plan(filename):
 # Die Funktion dev_options_form_parts kann zur Erzeugung aller möglichen Job-Reihenfolgen verwendet werden.
 def generate_job_permutations(filename):
     jobs_data = get_job_data_form_json(filename)
+    maschne_data = get_schedule_from_json(filename)
+    times = []
     jobs = []
     for operation, job_list in jobs_data.items():
         for job in job_list:
             jobs.append(job)
+    for maschine, time in maschne_data.items():
+        print(time)
+    print(jobs)
 
-    # Erzeugen Sie alle möglichen Permutationen der Jobs.
-    job_permutations = itertools.permutations(jobs)
 
-    return job_permutations
-
-permutations = generate_job_permutations("data.json")
-
-for idx, permutation in enumerate(permutations, start=1):
-    print(f"Permutation {idx}: {permutation}")
 
 # Diese Funktion berechnet die Gesamtkosten für einen gegebenen Zeitplan.
 def calculate_total_cost(schedule, max_time):
